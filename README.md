@@ -38,7 +38,7 @@
 | 💎 **Platinum** | **¥50,000 (ครั้งเดียว)** | องค์กรใหญ่, On-premise | ตลอดชีพ, Support ส่วนตัว, IP |
 
 > 💳 **ชำระได้ทั้ง Stripe (บัตร/PayPal) หรือโอนไทย**  
-> 👉 [ซื้อ License ทันที](https://github.com/sponsors/chaiyaphop) | [ดู Premium Features →](monetization/PREMIUM.md)
+> 👉 ) | 088636126 
 
 ---
 
