@@ -109,3 +109,6 @@ TestResults/
 .cache/
 
 tunnel_*.txt
+*.out.txt
+*.err.txt
+server_log.txt
