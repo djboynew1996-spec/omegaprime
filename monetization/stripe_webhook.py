@@ -345,9 +345,9 @@ def main():
     port = int(sys.argv[sys.argv.index("--port") + 1]) if "--port" in sys.argv else 8080
     
     print()
-    print("╔══════════════════════════════════════════════════╗")
-    print("║        OMEGA PRIME — License Server              ║")
-    print("╚══════════════════════════════════════════════════╝")
+    print("+--------------------------------------------------+")
+    print("|        OMEGA PRIME - License Server               |")
+    print("+--------------------------------------------------+")
     print()
     print(f"  [OK] Server starting on port {port}...")
     print(f"  [POST] /webhook/stripe  - Stripe webhook")
@@ -357,7 +357,7 @@ def main():
     print()
     
     if not HAS_FLASK:
-        print("❌  Flask not installed!")
+        print("[FAIL] Flask not installed!")
         print("   Install: pip install flask stripe")
         sys.exit(1)
     

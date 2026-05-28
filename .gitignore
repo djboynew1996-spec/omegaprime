@@ -1,5 +1,5 @@
-# ======================================================================
-# OMEGA PRIME — .gitignore
+﻿# ======================================================================
+# OMEGA PRIME โ€” .gitignore
 # Protect secrets, build artifacts, and environment files
 # ======================================================================
 
@@ -107,3 +107,5 @@ TestResults/
 *.tmp
 *.temp
 .cache/
+
+tunnel_*.txt
