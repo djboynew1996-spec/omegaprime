@@ -1,0 +1,36 @@
+# OMEGA PRIME — Render Blueprint
+# Deploy: https://render.com/deploy?blueprint-url=https://github.com/djboynew1996-spec/omegaprime
+services:
+  - type: web
+    name: omegaprime-license-store
+    runtime: python
+    repo: https://github.com/djboynew1996-spec/omegaprime
+    branch: main
+    buildCommand: pip install -r web/requirements.txt
+    startCommand: gunicorn web.app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    healthCheckPath: /health
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: OMEGA_SECRET_KEY
+        sync: false
+      - key: STRIPE_API_KEY
+        sync: false
+      - key: STRIPE_PUBLIC_KEY
+        sync: false
+      - key: STRIPE_BRONZE_MONTHLY
+        sync: false
+      - key: STRIPE_BRONZE_YEARLY
+        sync: false
+      - key: STRIPE_SILVER_MONTHLY
+        sync: false
+      - key: STRIPE_SILVER_YEARLY
+        sync: false
+      - key: STRIPE_GOLD_MONTHLY
+        sync: false
+      - key: STRIPE_GOLD_YEARLY
+        sync: false
+      - key: STRIPE_PLATINUM
+        sync: false
+      - key: LICENSE_API_KEY
+        sync: false
