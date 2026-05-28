@@ -497,6 +497,9 @@ OMEGA PRIME ใช้ **Dual License**:
 | ☕ **Buy Me a Coffee** | สนับสนุนเล็กน้อย | [Buy Coffee](https://www.buymeacoffee.com/chaiyaphop) |
 
 ---
+*ติดต่อซื้อ license:** chaiyaphop@omegaprime.dev  
+> **หรือกด สนันสนุน ที่ เลขพร้อมเพย์ 0886363126  SCB 1512396228
+> 
 
 ## 🌟 Star History
 
