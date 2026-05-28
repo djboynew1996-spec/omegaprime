@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}ราคา — OMEGA PRIME License{% endblock %}
+
+{% block content %}
+<div style="padding-top: 80px;"></div>
+
+<section class="section">
+    <div class="section-header">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">💎</div>
+        <h2>เลือกแพ็กเกจที่ใช่สำหรับ<span class="gradient-text">คุณ</span></h2>
+        <div class="section-divider"></div>
+        <p>เริ่มต้นฟรี ไม่มีค่าใช้จ่าย — เมื่อต้องการเพิ่มพลัง ค่อยอัปเกรด</p>
+    </div>
+
+    <!-- Toggle: Monthly / Yearly -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="display: inline-flex; background: var(--bg-card); border-radius: 50px; padding: 4px; border: 1px solid var(--border-color);">
+            <button id="toggleMonthly" class="btn btn-primary btn-sm" onclick="setInterval('monthly')" style="border-radius: 50px;">รายเดือน</button>
+            <button id="toggleYearly" class="btn btn-secondary btn-sm" onclick="setInterval('yearly')" style="border-radius: 50px; background: none;">รายปี <span style="font-size: 0.7rem; color: var(--accent-green);">(ประหยัด 20%)</span></button>
+        </div>
+    </div>
+
+    <div class="pricing-grid" id="pricingGrid">
+        {% for tier in tiers %}
+        <div class="pricing-card {% if tier.popular %}popular{% endif %}" style="{% if tier.popular %}border-color: var(--accent-cyan);{% endif %}">
+            {% if tier.popular %}
+            <div class="pricing-badge">มาแรงที่สุด 🔥</div>
+            {% endif %}
+            
+            <div class="pricing-header">
+                <div class="pricing-emoji">{{ tier.emoji }}</div>
+                <div class="pricing-name">{{ tier.name }}</div>
+                <div class="pricing-price {% if tier.id == 'free' %}free{% elif tier.id == 'gold' or tier.id == 'platinum' %}gold{% endif %}"
+                     data-monthly="{{ tier.price_monthly }}"
+                     data-yearly="{{ tier.price_monthly * 10 if tier.id != 'free' else 0 }}">
+                    {% if tier.price_monthly == 0 %}
+                        ฟรี
+                    {% else %}
+                        ¥{{ "{:,}".format(tier.price_monthly) }}
+                    {% endif %}
+                </div>
+                <div class="pricing-period">
+                    {% if tier.id == 'platinum' and tier.is_once %}
+                        จ่ายครั้งเดียว ตลอดชีพ
+                    {% elif tier.price_monthly == 0 %}
+                        ตลอดไป
+                    {% else %}
+                        /เดือน
+                    {% endif %}
+                </div>
+            </div>
+            
+            <ul class="pricing-features">
+                {% for feature in tier.features %}
+                <li>{{ feature }}</li>
+                {% endfor %}
+                {% for feature in tier.disabled_features %}
+                <li class="disabled">{{ feature }}</li>
+                {% endfor %}
+            </ul>
+            
+            <div class="pricing-actions">
+                {% if tier.id == 'free' %}
+                <a href="https://github.com/chaiyaphop/omegaprime" target="_blank" class="btn btn-secondary btn-block">
+                    🐱 ดาวน์โหลดฟรี
+                </a>
+                {% elif tier.id == 'platinum' %}
+                <a href="/checkout/{{ tier.id }}" class="btn btn-gold btn-block" onclick="return buyNow('{{ tier.id }}')">
+                    💎 ซื้อ ₩50,000
+                </a>
+                {% else %}
+                <a href="/checkout/{{ tier.id }}?interval=monthly" class="btn btn-primary btn-block interval-btn monthly-btn" onclick="return buyNow('{{ tier.id }}')">
+                    🛒 สมัครรายเดือน
+                </a>
+                <a href="/checkout/{{ tier.id }}?interval=yearly" class="btn btn-secondary btn-block interval-btn yearly-btn hidden" onclick="return buyNow('{{ tier.id }}')">
+                    🛒 สมัครรายปี (ประหยัด 20%)
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- FAQ -->
+    <div style="margin-top: 4rem;">
+        <div class="section-header">
+            <h3>คำถามที่พบบ่อย</h3>
+            <div class="section-divider"></div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            <div class="card">
+                <h4>🤔 License ใช้กับอะไรได้บ้าง?</h4>
+                <p class="text-muted mt-1">Silver ขึ้นไปใช้เชิงพาณิชย์ได้, Gold เปลี่ยนชื่อเป็นของตัวเองได้, Platinum มีสิทธิ์ตลอดชีพ</p>
+            </div>
+            <div class="card">
+                <h4>🔄 เปลี่ยนจากฟรีเป็นเสียเงินทีหลังได้ไหม?</h4>
+                <p class="text-muted mt-1">ได้! ใช้ฟรีไปก่อน เมื่ออยากได้ License ค่อยซื้อ — โค้ดและข้อมูลเดิมไม่หาย</p>
+            </div>
+            <div class="card">
+                <h4>💳 จ่ายเงินยังไง?</h4>
+                <p class="text-muted mt-1">บัตรเครดิต (Stripe), โอนผ่านธนาคารไทย, หรือ GitHub Sponsors</p>
+            </div>
+            <div class="card">
+                <h4>🔑 ได้ License ยังไงหลังจ่าย?</h4>
+                <p class="text-muted mt-1">หลังจ่ายเงิน ระบบจะพาไปหน้าแสดง License Key ทันที พร้อมส่งอีเมลยืนยัน</p>
+            </div>
+            <div class="card">
+                <h4>📝 License มีอายุเท่าไหร่?</h4>
+                <p class="text-muted mt-1">Bronze-Silver-Gold: รายเดือน/รายปี, Platinum: จ่ายครั้งเดียว 10 ปี</p>
+            </div>
+            <div class="card">
+                <h4>🔐 License Key ปลอดภัยไหม?</h4>
+                <p class="text-muted mt-1">HMAC-SHA256 256-bit signature พร้อม nonce ป้องกันการปลอมแปลง</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+let currentInterval = 'monthly';
+
+function setInterval(interval) {
+    currentInterval = interval;
+    
+    // Toggle button styles
+    document.getElementById('toggleMonthly').className = interval === 'monthly' 
+        ? 'btn btn-primary btn-sm' 
+        : 'btn btn-secondary btn-sm';
+    document.getElementById('toggleMonthly').style.background = interval === 'monthly' ? '' : 'none';
+    
+    document.getElementById('toggleYearly').className = interval === 'yearly' 
+        ? 'btn btn-primary btn-sm' 
+        : 'btn btn-secondary btn-sm';
+    document.getElementById('toggleYearly').style.background = interval === 'yearly' ? '' : 'none';
+    
+    // Toggle price display
+    document.querySelectorAll('.pricing-price').forEach(el => {
+        const monthly = parseInt(el.dataset.monthly);
+        const yearly = parseInt(el.dataset.yearly);
+        
+        if (interval === 'yearly' && yearly > 0) {
+            el.textContent = '¥' + yearly.toLocaleString();
+        } else if (monthly === 0) {
+            el.textContent = 'ฟรี';
+        } else {
+            el.textContent = '¥' + monthly.toLocaleString();
+        }
+    });
+    
+    // Toggle period text
+    document.querySelectorAll('.pricing-period').forEach(el => {
+        if (interval === 'yearly') {
+            el.textContent = '/ปี';
+        } else {
+            el.textContent = '/เดือน';
+        }
+    });
+    
+    // Toggle buttons
+    document.querySelectorAll('.monthly-btn').forEach(btn => {
+        btn.classList.toggle('hidden', interval !== 'monthly');
+    });
+    document.querySelectorAll('.yearly-btn').forEach(btn => {
+        btn.classList.toggle('hidden', interval !== 'yearly');
+    });
+}
+
+function buyNow(tier) {
+    const interval = currentInterval === 'yearly' ? 'yearly' : 'monthly';
+    // Show loading state
+    return true;
+}
+</script>
+{% endblock %}

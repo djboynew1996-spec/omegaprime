@@ -1,0 +1,298 @@
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: omega-prime
+  labels:
+    name: omega-prime
+    environment: production
+
+---
+# ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: omega-config
+  namespace: omega-prime
+data:
+  OMEGA_MAX_CONCURRENT: "50"
+  OMEGA_RATE_LIMIT: "60"
+  OMEGA_DB_PATH: "/app/data/omega_data.json"
+  LOG_LEVEL: "INFO"
+
+---
+# Secret (Create via kubectl or sealed-secrets)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: omega-secrets
+  namespace: omega-prime
+type: Opaque
+stringData:
+  OMEGA_SECRET_KEY: "REPLACE_WITH_ACTUAL_SECRET"
+  POSTGRES_PASSWORD: "REPLACE_WITH_ACTUAL_PASSWORD"
+  REDIS_PASSWORD: "REPLACE_WITH_ACTUAL_PASSWORD"
+
+---
+# PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: omega-data-pvc
+  namespace: omega-prime
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: gp3  # AWS EBS gp3, adjust for your cloud provider
+
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omega-prime
+  namespace: omega-prime
+  labels:
+    app: omega-prime
+    version: v2.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: omega-prime
+  template:
+    metadata:
+      labels:
+        app: omega-prime
+        version: v2.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      
+      containers:
+      - name: omega-prime
+        image: ghcr.io/your-org/omega-prime:latest
+        imagePullPolicy: Always
+        
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        
+        env:
+        - name: OMEGA_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: omega-secrets
+              key: OMEGA_SECRET_KEY
+        - name: OMEGA_MAX_CONCURRENT
+          valueFrom:
+            configMapKeyRef:
+              name: omega-config
+              key: OMEGA_MAX_CONCURRENT
+        - name: OMEGA_RATE_LIMIT
+          valueFrom:
+            configMapKeyRef:
+              name: omega-config
+              key: OMEGA_RATE_LIMIT
+        - name: OMEGA_DB_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: omega-config
+              key: OMEGA_DB_PATH
+        
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+        
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - test -f /app/omega.log
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - test -f /app/omega.log
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - echo "exit" | dotnet OmegaPrime.dll
+      
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: omega-data-pvc
+      
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - omega-prime
+              topologyKey: kubernetes.io/hostname
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: omega-prime-service
+  namespace: omega-prime
+  labels:
+    app: omega-prime
+spec:
+  type: LoadBalancer
+  selector:
+    app: omega-prime
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+
+---
+# HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: omega-prime-hpa
+  namespace: omega-prime
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: omega-prime
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 30
+
+---
+# PodDisruptionBudget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: omega-prime-pdb
+  namespace: omega-prime
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: omega-prime
+
+---
+# NetworkPolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: omega-prime-netpol
+  namespace: omega-prime
+spec:
+  podSelector:
+    matchLabels:
+      app: omega-prime
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+    - protocol: TCP
+      port: 6379  # Redis
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 53    # DNS
+    - protocol: UDP
+      port: 53

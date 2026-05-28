@@ -1,0 +1,49 @@
+# ==================================================================================
+# OMEGA PRIME — Funding & Sponsorship Configuration
+# ==================================================================================
+#
+# 💎 支援 OMEGA PRIME Development
+# Support OMEGA PRIME development
+#
+# Tiers:
+#   🆓 Free Tier    — Full source code, MIT license
+#   🥉 Bronze       — Priority support + Discord role
+#   🥈 Silver       — Custom license keys + API access
+#   🥇 Gold         - Commercial license + white-label
+#   💎 Platinum     - Enterprise license + dedicated support
+# ==================================================================================
+
+# GitHub Sponsors (primary — 0% fee, direct to developer)
+github: [chaiyaphop]
+
+# Buy Me a Coffee (alternative for smaller donations)
+custom: ["https://www.buymeacoffee.com/chaiyaphop"]
+
+# Stripe payment links (for license purchase)
+# These links auto-generate license keys via webhook
+custom: [
+    "https://buy.stripe.com/test_dRmcMXaswbwF30oaG93Ru00",   # 🥉 Bronze — ¥1,000/month
+    "https://buy.stripe.com/test_00w7sDeIMeIRasQ5lP3Ru01",   # 🥉 Bronze — ¥10,000/year
+    "https://buy.stripe.com/test_7sYaEP0RWcAJcAY01v3Ru02",   # 🥈 Silver — ¥5,000/month
+    "https://buy.stripe.com/test_cNibIT1W09oxfNag0t3Ru03",   # 🥈 Silver — ¥50,000/year
+    "https://buy.stripe.com/test_cNi14fgQUfMVbwU4hL3Ru04",   # 🥇 Gold — ¥20,000/month
+    "https://buy.stripe.com/test_aFa28j8koasB9oMaG93Ru05",   # 🥇 Gold — ¥200,000/year
+    "https://buy.stripe.com/test_aFaeV59osbwF7gEg0t3Ru06",   # 💎 Platinum — ¥50,000 (one-time)
+]
+
+# Other platforms
+patreon: chaiyaphop
+ko_fi: chaiyaphop
+
+# Custom messages
+message: |
+  🙏 Thank you for considering supporting OMEGA PRIME!
+  
+  Your sponsorship directly funds:
+  - 🧪 Continuous security auditing
+  - 🚀 New feature development (Transformer v2, real-time dashboard)
+  - 📚 Documentation and examples
+  - ☁️ Cloud infrastructure for license server
+  
+  Every tier gets access to the full source code. Higher tiers unlock
+  premium features, commercial licenses, and dedicated support.

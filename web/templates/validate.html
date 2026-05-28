@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block title %}ตรวจสอบ License — OMEGA PRIME{% endblock %}
+
+{% block content %}
+<div style="padding-top: 80px;"></div>
+
+<section class="section" style="max-width: 700px;">
+    <div class="section-header">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+        <h2>ตรวจสอบ <span class="gradient-text">License Key</span></h2>
+        <div class="section-divider"></div>
+        <p>ตรวจสอบสถานะ License Key ของคุณ — รองรับทั้ง Online และ Offline (HMAC)</p>
+    </div>
+
+    <!-- Input -->
+    <div class="card">
+        <div class="form-group">
+            <label for="licenseInput">🔑 License Key</label>
+            <textarea id="licenseInput" class="form-input" 
+                      placeholder="OMEGA-eyJjdXN0b21lcl9pZCI6...-xxxx"
+                      rows="3" style="font-family: var(--font-mono); font-size: 0.8rem;"></textarea>
+        </div>
+        
+        <div class="flex gap-2 flex-wrap">
+            <button class="btn btn-primary" onclick="validateLicense()">
+                🔍 ตรวจสอบ
+            </button>
+            <button class="btn btn-secondary" onclick="document.getElementById('licenseInput').value = ''">
+                🗑️ ล้าง
+            </button>
+            <label class="btn btn-secondary" style="cursor: pointer;">
+                📂 อัปโหลดไฟล์ .lic
+                <input type="file" accept=".lic,.txt" style="display: none;" onchange="loadLicenseFile(event)">
+            </label>
+        </div>
+    </div>
+
+    <!-- Result -->
+    <div id="resultArea" class="hidden">
+        <div class="card" id="resultCard">
+            <div class="card-header flex flex-between">
+                <h3 id="resultTitle">ผลการตรวจสอบ</h3>
+                <span id="resultBadge" class="status-badge">-</span>
+            </div>
+            
+            <div id="resultDetails">
+                <div class="flex flex-between" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span class="text-muted">👤 ลูกค้า</span>
+                    <span id="rCustomer" style="font-weight: 600;">-</span>
+                </div>
+                <div class="flex flex-between" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span class="text-muted">🏆 ระดับสิทธิ์</span>
+                    <span id="rTier" style="font-weight: 600;">-</span>
+                </div>
+                <div class="flex flex-between" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span class="text-muted">📅 วันหมดอายุ</span>
+                    <span id="rExpiry" style="font-weight: 600;">-</span>
+                </div>
+                <div class="flex flex-between" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span class="text-muted">⏳ คงเหลือ</span>
+                    <span id="rRemaining" style="font-weight: 600;">-</span>
+                </div>
+                <div class="flex flex-between" style="padding: 0.75rem 0;">
+                    <span class="text-muted">✨ ฟีเจอร์ที่ปลดล็อค</span>
+                    <span id="rFeatures" style="font-weight: 600; text-align: right;">-</span>
+                </div>
+            </div>
+            
+            <div id="resultError" class="hidden" style="margin-top: 1rem;">
+                <div class="alert alert-error" id="errorMsg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spinner -->
+    <div id="loadingArea" class="hidden text-center" style="padding: 2rem;">
+        <div class="spinner" style="width: 40px; height: 40px; border-width: 3px; margin: 0 auto 1rem;"></div>
+        <p class="text-muted">กำลังตรวจสอบ License...</p>
+    </div>
+
+    <!-- Quick Parse Info -->
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h3>💡 License Key Format</h3>
+        </div>
+        <p class="text-muted" style="margin-bottom: 1rem;">
+            License Key ประกอบด้วย 3 ส่วน คั่นด้วย <code>-</code>
+        </p>
+        <div class="license-box" style="border-style: solid; border-color: var(--border-color); padding: 1rem;">
+            <code>OMEGA-{base64_json_payload}-{hmac_signature_16_chars}</code>
+        </div>
+        <div style="margin-top: 1rem; display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; font-size: 0.85rem;">
+            <span class="status-badge status-valid" style="justify-content: center;">OMEGA</span>
+            <span class="text-muted">Prefix ประจำระบบ</span>
+            
+            <span class="status-badge status-valid" style="justify-content: center;">Base64</span>
+            <span class="text-muted">JSON payload: customer_id, tier, expiry, nonce</span>
+            
+            <span class="status-badge status-valid" style="justify-content: center;">HMAC</span>
+            <span class="text-muted">SHA256 signature 16 ตัวอักษรป้องกันปลอมแปลง</span>
+        </div>
+    </div>
+</section>
+
+<script>
+async function validateLicense() {
+    const input = document.getElementById('licenseInput').value.trim();
+    if (!input) {
+        showError('กรุณาใส่ License Key');
+        return;
+    }
+    
+    // Show loading
+    document.getElementById('loadingArea').classList.remove('hidden');
+    document.getElementById('resultArea').classList.add('hidden');
+    
+    try {
+        // Try online validation first
+        const response = await fetch('/api/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ license_key: input }),
+        });
+        
+        const result = await response.json();
+        
+        document.getElementById('loadingArea').classList.add('hidden');
+        document.getElementById('resultArea').classList.remove('hidden');
+        
+        if (result.valid) {
+            showValid(result);
+        } else {
+            showInvalid(result);
+        }
+    } catch (err) {
+        // Offline fallback — parse the license on client side
+        document.getElementById('loadingArea').classList.add('hidden');
+        document.getElementById('resultArea').classList.remove('hidden');
+        
+        try {
+            const parts = input.split('-');
+            if (parts.length !== 3 || parts[0] !== 'OMEGA') {
+                showError('รูปแบบ License Key ไม่ถูกต้อง');
+                return;
+            }
+            
+            const json = atob(parts[1]);
+            const payload = JSON.parse(json);
+            
+            showOfflineInfo(payload);
+        } catch {
+            showError('ไม่สามารถตรวจสอบ License Key ได้ (server offline และรูปแบบไม่ถูกต้อง)');
+        }
+    }
+}
+
+function showValid(result) {
+    const card = document.getElementById('resultCard');
+    card.style.borderColor = 'var(--accent-green)';
+    document.getElementById('resultTitle').textContent = '✅ License ใช้งานได้';
+    document.getElementById('resultBadge').textContent = '✅ VALID';
+    document.getElementById('resultBadge').className = 'status-badge status-valid';
+    
+    document.getElementById('rCustomer').textContent = result.customer_id || '-';
+    
+    const tier = result.tier || 'free';
+    const tierEmojis = { free: '🆓', bronze: '🥉', silver: '🥈', gold: '🥇', platinum: '💎' };
+    document.getElementById('rTier').textContent = (tierEmojis[tier.toLowerCase()] || '') + ' ' + tier.toUpperCase();
+    
+    document.getElementById('rExpiry').textContent = result.expiry || '-';
+    document.getElementById('rRemaining').textContent = result.remaining_days ? result.remaining_days + ' วัน' : '-';
+    document.getElementById('rFeatures').textContent = result.features ? result.features.join(', ') : '-';
+    
+    document.getElementById('resultError').classList.add('hidden');
+}
+
+function showInvalid(result) {
+    const card = document.getElementById('resultCard');
+    card.style.borderColor = 'var(--accent-red)';
+    document.getElementById('resultTitle').textContent = '❌ License ไม่ถูกต้อง';
+    document.getElementById('resultBadge').textContent = '❌ INVALID';
+    document.getElementById('resultBadge').className = 'status-badge status-invalid';
+    
+    document.getElementById('rCustomer').textContent = result.customer_id || '-';
+    document.getElementById('rTier').textContent = '-';
+    document.getElementById('rExpiry').textContent = '-';
+    document.getElementById('rRemaining').textContent = '-';
+    document.getElementById('rFeatures').textContent = '-';
+    
+    const errorDiv = document.getElementById('resultError');
+    errorDiv.classList.remove('hidden');
+    document.getElementById('errorMsg').textContent = result.error || 'License Key หมดอายุหรือไม่ถูกต้อง';
+}
+
+function showOfflineInfo(payload) {
+    const card = document.getElementById('resultCard');
+    card.style.borderColor = 'var(--accent-gold)';
+    document.getElementById('resultTitle').textContent = '⚠️ ข้อมูลจาก License (Offline — ไม่สามารถยืนยันลายเซ็น)';
+    document.getElementById('resultBadge').textContent = '⚠️ PARSED';
+    document.getElementById('resultBadge').className = 'status-badge status-warning';
+    
+    document.getElementById('rCustomer').textContent = payload.customer_id || '-';
+    
+    const tier = payload.tier || 'free';
+    const tierEmojis = { free: '🆓', bronze: '🥉', silver: '🥈', gold: '🥇', platinum: '💎' };
+    document.getElementById('rTier').textContent = (tierEmojis[tier.toLowerCase()] || '') + ' ' + tier.toUpperCase();
+    
+    document.getElementById('rExpiry').textContent = payload.expiry || '-';
+    document.getElementById('rRemaining').textContent = '⚠️ ไม่สามารถตรวจสอบ (server offline)';
+    document.getElementById('rFeatures').textContent = '-';
+    
+    const errorDiv = document.getElementById('resultError');
+    errorDiv.classList.remove('hidden');
+    document.getElementById('errorMsg').textContent = '⚠️ License Server offline — แสดงข้อมูลจาก payload เท่านั้น ไม่ได้ยืนยันลายเซ็น';
+    document.getElementById('errorMsg').className = 'alert alert-info';
+}
+
+function showError(msg) {
+    document.getElementById('loadingArea').classList.add('hidden');
+    document.getElementById('resultArea').classList.remove('hidden');
+    
+    const card = document.getElementById('resultCard');
+    card.style.borderColor = 'var(--accent-red)';
+    document.getElementById('resultTitle').textContent = '❌ ข้อผิดพลาด';
+    document.getElementById('resultBadge').textContent = '❌ ERROR';
+    document.getElementById('resultBadge').className = 'status-badge status-invalid';
+    
+    document.getElementById('rCustomer').textContent = '-';
+    document.getElementById('rTier').textContent = '-';
+    document.getElementById('rExpiry').textContent = '-';
+    document.getElementById('rRemaining').textContent = '-';
+    document.getElementById('rFeatures').textContent = '-';
+    
+    const errorDiv = document.getElementById('resultError');
+    errorDiv.classList.remove('hidden');
+    document.getElementById('errorMsg').textContent = msg;
+    document.getElementById('errorMsg').className = 'alert alert-error';
+}
+
+function loadLicenseFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('licenseInput').value = e.target.result.trim();
+        validateLicense();
+    };
+    reader.readAsText(file);
+}
+</script>
+{% endblock %}

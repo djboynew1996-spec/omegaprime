@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY web/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
+COPY monetization/ monetization/
+COPY web/ web/
+
+# Environment
+ENV FLASK_ENV=production
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 5000
+
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "web.app:app"]

@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Admin — OMEGA PRIME License Store{% endblock %}
+
+{% block content %}
+<div style="padding-top: 80px;"></div>
+
+{% if not authenticated %}
+<!-- Admin Login -->
+<section class="section" style="max-width: 500px;">
+    <div class="admin-login">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+        <h2>Admin <span class="gradient-text">Dashboard</span></h2>
+        <p class="text-muted mb-4">กรุณาใส่ License API Key เพื่อเข้าสู่ระบบ</p>
+        
+        {% if auth_error %}
+        <div class="alert alert-error">❌ {{ auth_error }}</div>
+        {% endif %}
+        
+        <form method="POST" class="card">
+            <div class="form-group">
+                <label for="api_key">🔑 API Key</label>
+                <input type="password" id="api_key" name="api_key" class="form-input" 
+                       placeholder="Enter your LICENSE_API_KEY" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">เข้าสู่ระบบ</button>
+        </form>
+    </div>
+</section>
+
+{% else %}
+<!-- Admin Dashboard -->
+<section class="section">
+    <div class="flex flex-between flex-wrap" style="margin-bottom: 2rem;">
+        <div>
+            <h2>📊 Admin <span class="gradient-text">Dashboard</span></h2>
+            <p class="text-muted">จัดการ License และดูสถานะระบบ</p>
+        </div>
+        <div class="flex gap-1">
+            <span class="status-badge status-valid">🔑 API: Active</span>
+            {% if stripe_configured %}
+            <span class="status-badge status-valid">💳 Stripe: Connected</span>
+            {% else %}
+            <span class="status-badge status-warning">💳 Stripe: Demo Mode</span>
+            {% endif %}
+            {% if omega_key_set %}
+            <span class="status-badge status-valid">🔐 HMAC: Ready</span>
+            {% else %}
+            <span class="status-badge status-invalid">🔐 HMAC: Not Set</span>
+            {% endif %}
+            <a href="/admin/logout" class="btn btn-sm btn-danger">🚪 ออก</a>
+        </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="admin-grid">
+        <div class="stat-card">
+            <div class="stat-value">5</div>
+            <div class="stat-label">License Tiers</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">⚙️</div>
+            <div class="stat-label">Stripe: {{ '✅' if stripe_configured else '❌ Demo' }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">🔑</div>
+            <div class="stat-label">API Key: {{ license_api_key[:8] }}...</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">🔐</div>
+            <div class="stat-label">Secret: {{ 'Set' if omega_key_set else 'Not Set' }}</div>
+        </div>
+    </div>
+    
+    <!-- Generate License -->
+    <div class="card">
+        <div class="card-header">
+            <h3>🔑 Generate License</h3>
+            <p>สร้าง License Key ใหม่ (ต้องตั้ง OMEGA_SECRET_KEY)</p>
+        </div>
+        
+        {% if omega_key_set %}
+        <div class="admin-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="form-group">
+                <label for="genCustomer">👤 ลูกค้า</label>
+                <input id="genCustomer" class="form-input" placeholder="customer@email.com" value="admin-demo">
+            </div>
+            <div class="form-group">
+                <label for="genTier">🏆 ระดับ</label>
+                <select id="genTier" class="form-input">
+                    <option value="bronze">Bronze</option>
+                    <option value="silver" selected>Silver</option>
+                    <option value="gold">Gold</option>
+                    <option value="platinum">Platinum</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="genDays">📅 อายุ (วัน)</label>
+                <input id="genDays" class="form-input" type="number" value="365">
+            </div>
+            <div class="form-group" style="display: flex; align-items: flex-end;">
+                <button class="btn btn-primary btn-block" onclick="generateAdminLicense()">🔑 สร้าง License</button>
+            </div>
+        </div>
+        
+        <div id="adminResult" class="hidden">
+            <div class="license-box" style="margin-top: 1rem;">
+                <code id="adminLicenseKey" style="font-size: 0.75rem;"></code>
+            </div>
+            <button class="btn btn-sm btn-primary mt-1" onclick="copyAdminLicense()">📋 คัดลอก</button>
+        </div>
+        
+        <div id="adminError" class="hidden">
+            <div class="alert alert-error mt-2" id="adminErrorMsg"></div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            ⚠️ ต้องตั้งค่า <code>OMEGA_SECRET_KEY</code> environment variable ก่อนจึงจะสร้าง License ได้
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Tier Summary -->
+    <div class="card">
+        <div class="card-header">
+            <h3>🏆 License Tiers</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color);">
+                        <th style="text-align: left; padding: 0.75rem 0.5rem;">Tier</th>
+                        <th style="text-align: right; padding: 0.75rem 0.5rem;">ราคา/เดือน</th>
+                        <th style="text-align: right; padding: 0.75rem 0.5rem;">ราคา/ปี</th>
+                        <th style="text-align: center; padding: 0.75rem 0.5rem;">License</th>
+                        <th style="text-align: center; padding: 0.75rem 0.5rem;">Commercial</th>
+                        <th style="text-align: center; padding: 0.75rem 0.5rem;">White-Label</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tier in tiers %}
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.75rem 0.5rem;">
+                            {{ tier.emoji }} <strong>{{ tier.name }}</strong>
+                            {% if tier.popular %}<span class="status-badge status-valid" style="font-size: 0.7rem;">POPULAR</span>{% endif %}
+                        </td>
+                        <td style="text-align: right; padding: 0.75rem 0.5rem;">
+                            {% if tier.price_monthly == 0 %}ฟรี{% else %}¥{{ "{:,}".format(tier.price_monthly) }}{% endif %}
+                        </td>
+                        <td style="text-align: right; padding: 0.75rem 0.5rem;">
+                            {% if tier.price_monthly == 0 %}—{% elif tier.id == 'platinum' %}¥50,000{% else %}¥{{ "{:,}".format(tier.price_monthly * 10) }}{% endif %}
+                        </td>
+                        <td style="text-align: center; padding: 0.75rem 0.5rem;">
+                            {% if tier.id == 'free' or tier.id == 'bronze' %}❌{% else %}✅{% endif %}
+                        </td>
+                        <td style="text-align: center; padding: 0.75rem 0.5rem;">
+                            {% if tier.id == 'silver' or tier.id == 'gold' or tier.id == 'platinum' %}✅{% else %}❌{% endif %}
+                        </td>
+                        <td style="text-align: center; padding: 0.75rem 0.5rem;">
+                            {% if tier.id == 'gold' or tier.id == 'platinum' %}✅{% else %}❌{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- API Docs -->
+    <div class="card">
+        <div class="card-header">
+            <h3>📡 API Endpoints</h3>
+            <p>ใช้ API Key: <code>{{ license_api_key[:8] }}...</code> สำหรับยืนยันตัวตน</p>
+        </div>
+        
+        <div style="display: grid; gap: 1rem;">
+            <div>
+                <div class="flex flex-between" style="margin-bottom: 0.5rem;">
+                    <span class="status-badge status-valid" style="font-size: 0.75rem;">POST</span>
+                    <code>/api/validate</code>
+                </div>
+                <pre style="background: var(--bg-secondary); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; overflow-x: auto;">{
+    "license_key": "OMEGA-..."
+}</pre>
+            </div>
+            
+            <div>
+                <div class="flex flex-between" style="margin-bottom: 0.5rem;">
+                    <span class="status-badge status-valid" style="font-size: 0.75rem;">POST</span>
+                    <code>/api/generate</code>
+                </div>
+                <pre style="background: var(--bg-secondary); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; overflow-x: auto;">Headers: X-API-Key: {{ license_api_key[:8] }}...
+Body: {
+    "customer": "user@email.com",
+    "tier": "silver",
+    "days": 365
+}</pre>
+            </div>
+            
+            <div>
+                <div class="flex flex-between" style="margin-bottom: 0.5rem;">
+                    <span class="status-badge status-valid" style="font-size: 0.75rem;">POST</span>
+                    <code>/api/license-info</code>
+                </div>
+                <pre style="background: var(--bg-secondary); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; overflow-x: auto;">{
+    "license_key": "OMEGA-..."
+}
+// Returns decoded payload (no signature check needed)</pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+async function generateAdminLicense() {
+    const customer = document.getElementById('genCustomer').value || 'admin';
+    const tier = document.getElementById('genTier').value;
+    const days = parseInt(document.getElementById('genDays').value) || 365;
+    
+    try {
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': '{{ license_api_key }}',
+            },
+            body: JSON.stringify({ customer, tier, days }),
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('adminLicenseKey').textContent = result.license_key;
+            document.getElementById('adminResult').classList.remove('hidden');
+            document.getElementById('adminError').classList.add('hidden');
+        } else {
+            document.getElementById('adminErrorMsg').textContent = result.error || 'Failed to generate';
+            document.getElementById('adminError').classList.remove('hidden');
+            document.getElementById('adminResult').classList.add('hidden');
+        }
+    } catch (err) {
+        document.getElementById('adminErrorMsg').textContent = 'Network error: ' + err;
+        document.getElementById('adminError').classList.remove('hidden');
+        document.getElementById('adminResult').classList.add('hidden');
+    }
+}
+
+function copyAdminLicense() {
+    const key = document.getElementById('adminLicenseKey');
+    navigator.clipboard.writeText(key.textContent.trim())
+        .then(() => {
+            const btn = document.querySelector('button[onclick="copyAdminLicense()"]');
+            btn.textContent = '✅ คัดลอกแล้ว';
+            setTimeout(() => btn.textContent = '📋 คัดลอก', 2000);
+        });
+}
+</script>
+{% endif %}
+{% endblock %}

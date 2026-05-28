@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}✅ ซื้อสำเร็จ — OMEGA PRIME License{% endblock %}
+
+{% block content %}
+<div style="padding-top: 100px;"></div>
+
+<section class="section" style="max-width: 700px;">
+    <div class="text-center" style="margin-bottom: 2rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
+        <h1>ขอบคุณสำหรับการ<span class="gradient-text">สนับสนุน</span>!</h1>
+        <div class="section-divider" style="margin: 1rem auto;"></div>
+        <p class="hero-subtitle">
+            License Key ของคุณถูกสร้างและพร้อมใช้งานแล้ว
+        </p>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>🔑 License Key ของคุณ</h3>
+            <p>ใช้ Key นี้เพื่อปลดล็อคฟีเจอร์พรีเมียมทั้งหมด</p>
+        </div>
+        
+        <div class="license-box">
+            <code id="licenseKey">{{ license_key }}</code>
+        </div>
+        
+        <div class="flex flex-wrap gap-2" style="margin-top: 1rem;">
+            <button class="btn btn-primary btn-sm" onclick="copyLicense()">📋 คัดลอก License</button>
+            <button class="btn btn-secondary btn-sm" onclick="downloadLicense()">💾 ดาวน์โหลด (.lic)</button>
+        </div>
+        
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td class="text-muted" style="padding: 0.5rem 0;">ระดับสิทธิ์</td>
+                    <td style="padding: 0.5rem 0; text-align: right;">
+                        <span class="status-badge status-valid">
+                            {{ tier.upper() if tier else 'FREE' }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted" style="padding: 0.5rem 0;">ลูกค้า</td>
+                    <td style="padding: 0.5rem 0; text-align: right;">{{ customer or 'anonymous' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted" style="padding: 0.5rem 0;">วันหมดอายุ</td>
+                    <td style="padding: 0.5rem 0; text-align: right;">{{ expiry or 'N/A' }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+            <h3>🚀 วิธีใช้งาน License</h3>
+        </div>
+        <ol style="color: var(--text-secondary); padding-left: 1.5rem;">
+            <li style="margin-bottom: 0.75rem;">
+                <strong>ตั้งค่า Environment Variable</strong>
+                <div class="license-box" style="margin-top: 0.5rem; padding: 0.75rem; border-style: solid;">
+                    <code>set OMEGA_LICENSE_KEY={{ license_key[:50] if license_key else '' }}...</code>
+                </div>
+            </li>
+            <li style="margin-bottom: 0.75rem;">
+                <strong>หรือบันทึกเป็นไฟล์</strong>
+                <div class="license-box" style="margin-top: 0.5rem; padding: 0.75rem; border-style: solid;">
+                    <code>echo {{ license_key[:50] if license_key else '' }}... > omega.lic</code>
+                </div>
+            </li>
+            <li style="margin-bottom: 0.75rem;">
+                <strong>รันโปรแกรม</strong>
+                <div class="license-box" style="margin-top: 0.5rem; padding: 0.75rem; border-style: solid;">
+                    <code>dotnet run --project src/OmegaPrime.csproj</code>
+                </div>
+            </li>
+        </ol>
+    </div>
+
+    <div class="text-center mt-4">
+        <div class="hero-actions">
+            <a href="https://github.com/chaiyaphop/omegaprime" target="_blank" class="btn btn-primary">🐱 ไปที่ GitHub</a>
+            <a href="/" class="btn btn-secondary">🏠 กลับหน้าแรก</a>
+        </div>
+    </div>
+</section>
+
+<script>
+function copyLicense() {
+    const key = document.getElementById('licenseKey');
+    navigator.clipboard.writeText(key.textContent.trim())
+        .then(() => {
+            const btn = document.querySelector('button[onclick="copyLicense()"]');
+            btn.textContent = '✅ คัดลอกแล้ว!';
+            setTimeout(() => btn.textContent = '📋 คัดลอก License', 2000);
+        });
+}
+
+function downloadLicense() {
+    const key = document.getElementById('licenseKey').textContent.trim();
+    const blob = new Blob([key + '\n'], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'omega.lic';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

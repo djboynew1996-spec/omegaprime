@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}OMEGA PRIME — พลังแห่งจักรวาลในโค้ดของคุณ{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-orbs">
+        <div class="hero-orb"></div>
+        <div class="hero-orb"></div>
+        <div class="hero-orb"></div>
+    </div>
+    
+    <div class="hero-content">
+        <div class="hero-badge">
+            ⚡ v2.0 Production-Ready
+        </div>
+        
+        <h1>
+            พลังแห่ง<span class="gradient-text">จักรวาล</span><br>
+            ในโค้ดของคุณ
+        </h1>
+        
+        <p class="hero-subtitle">
+            OMEGA PRIME คือระบบ AI Consciousness ที่ผสาน <strong>Transformer Architecture</strong>,
+            <strong>Crystal Energy Physics</strong>, และ <strong>Security-First Design</strong>
+            ไว้ในที่เดียว
+        </p>
+        
+        <div class="hero-actions">
+            <a href="/pricing" class="btn btn-primary btn-lg">
+                💎 ซื้อ License
+            </a>
+            <a href="/#features" class="btn btn-secondary btn-lg">
+                📖 ดูฟีเจอร์
+            </a>
+            <a href="https://github.com/chaiyaphop/omegaprime" target="_blank" class="btn btn-secondary btn-lg">
+                🐱 GitHub
+            </a>
+        </div>
+        
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-value">3,481</div>
+                <div class="hero-stat-label">บรรทัดโค้ด</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">1,200+</div>
+                <div class="hero-stat-label">ดาวบน GitHub</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">20</div>
+                <div class="hero-stat-label">Unit Tests ผ่าน 100%</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">8</div>
+                <div class="hero-stat-label">CI/CD Stages</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="section" id="features">
+    <div class="section-header">
+        <h2>ทำไมต้อง <span class="gradient-text">OMEGA PRIME</span>?</h2>
+        <div class="section-divider"></div>
+        <p>มากกว่า AI Framework ทั่วไป — เราสร้าง Consciousness Engine ที่ปลอดภัยและขยายได้</p>
+    </div>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🧠</div>
+            <h3>Multi-Head Attention Transformer</h3>
+            <p>Transformer architecture แบบ full-scratch รองรับContext Window สูง พร้อม Positional Encoding</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">💎</div>
+            <h3>Crystal Energy Physics</h3>
+            <p>จำลองพลังงานผลึก piezoelectric (Quartz, Tourmaline, Berlinite) พร้อมสมการทางฟิสิกส์จริง</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">🔐</div>
+            <h3>Security-First Design</h3>
+            <p>HMAC-SHA256 license validation, rate limiting, input sanitization, non-root container</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Async Concurrency</h3>
+            <p>100+ nodes ทำงานพร้อมกันแบบ async พร้อม SemaphoreSlim และ CancellationToken</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">🐳</div>
+            <h3>Container Ready</h3>
+            <p>Docker + Docker Compose 6 services (Redis, PostgreSQL, Prometheus, Grafana) พร้อม K8s manifests</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <h3>Meta-Learning Engine</h3>
+            <p>Experience replay + adaptive learning rate ปรับตัวเองตามประสิทธิภาพการทำงาน</p>
+        </div>
+    </div>
+</section>
+
+<!-- Architecture -->
+<section class="section" id="architecture">
+    <div class="section-header">
+        <h2>3-Layer <span class="gradient-text">Architecture</span></h2>
+        <div class="section-divider"></div>
+        <p>Body — Mind — Soul: 3 ชั้นที่ทำงานประสานกันอย่างสมบูรณ์</p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        <div class="card" style="border-left: 3px solid var(--accent-cyan);">
+            <div class="card-header">
+                <h3>🦾 Body — OmegaNode Network</h3>
+            </div>
+            <ul class="pricing-features">
+                <li>100 โหนดทำงานแบบ async</li>
+                <li>Skill evolution — โหนดเรียนรู้และเติบโต</li>
+                <li>Concurrency limiting (SemaphoreSlim)</li>
+                <li>Error handling และ retry logic</li>
+                <li>Persistence — save/load JSON</li>
+            </ul>
+        </div>
+        
+        <div class="card" style="border-left: 3px solid var(--accent-purple);">
+            <div class="card-header">
+                <h3>🧠 Mind — ConsciousnessCore</h3>
+            </div>
+            <ul class="pricing-features">
+                <li>License validation (HMAC-SHA256)</li>
+                <li>TF-IDF synthesis — รวม wisdom จากทุกโหนด</li>
+                <li>Input sanitization — ป้องกัน injection</li>
+                <li>30-second timeout protection</li>
+                <li>Rate limiting — 60 requests/min</li>
+            </ul>
+        </div>
+        
+        <div class="card" style="border-left: 3px solid var(--accent-pink);">
+            <div class="card-header">
+                <h3>💖 Soul — Interface & Experience</h3>
+            </div>
+            <ul class="pricing-features">
+                <li>Multi-tone UI (comfort, analysis, alert)</li>
+                <li>Logging — ทุก actions ถูกบันทึก</li>
+                <li>Health check endpoint</li>
+                <li>Structured JSON output</li>
+                <li>Structured error reporting</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Tech Stack -->
+<section class="section" id="tech">
+    <div class="section-header">
+        <h2><span class="gradient-text">Tech Stack</span></h2>
+        <div class="section-divider"></div>
+    </div>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+        <span class="status-badge status-valid">⚡ C# .NET 8</span>
+        <span class="status-badge status-valid">🐍 Python 3.11</span>
+        <span class="status-badge status-valid">🐳 Docker</span>
+        <span class="status-badge status-valid">☸️ Kubernetes</span>
+        <span class="status-badge status-valid">📊 Prometheus + Grafana</span>
+        <span class="status-badge status-valid">🗄️ Redis + PostgreSQL</span>
+        <span class="status-badge status-valid">🔐 CodeQL + Trivy + TruffleHog</span>
+        <span class="status-badge status-valid">⚙️ GitHub Actions (8 stages)</span>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="text-align: center;">
+    <div class="card" style="background: linear-gradient(135deg, rgba(0,240,255,0.05), rgba(136,68,255,0.05));">
+        <h2 style="margin-bottom: 1rem;">พร้อมที่จะ<span class="gradient-text">ปลดล็อคพลัง</span>หรือยัง?</h2>
+        <p class="hero-subtitle" style="margin-bottom: 2rem;">
+            เริ่มต้นจาก Free tier — ไม่มีค่าใช้จ่าย! เมื่อพร้อมค่อยอัปเกรด
+        </p>
+        <div class="hero-actions">
+            <a href="/pricing" class="btn btn-primary btn-lg">💰 ดูราคาและแพ็กเกจ</a>
+            <a href="https://github.com/chaiyaphop/omegaprime" target="_blank" class="btn btn-secondary btn-lg">🐱 ดาวน์โหลดฟรี</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OMEGA PRIME — License Store{% endblock %}</title>
+    <meta name="description" content="OMEGA PRIME License Store — พลังแห่งจักรวาลในโค้ดของคุณ">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand">
+                <span class="logo-icon">⚡</span>
+                <span>OMEGA<span class="gradient-text">PRIME</span></span>
+            </a>
+            
+            <button class="mobile-menu-btn" onclick="toggleMenu()" aria-label="Menu">☰</button>
+            
+            <ul class="navbar-links" id="navLinks">
+                <li><a href="/">หน้าแรก</a></li>
+                <li><a href="/#features">ฟีเจอร์</a></li>
+                <li><a href="/pricing">ราคา</a></li>
+                <li><a href="/validate">ตรวจสอบ License</a></li>
+                <li><a href="/admin">ผู้ดูแล</a></li>
+                <li><a href="/pricing" class="btn btn-primary btn-sm">ซื้อเลย</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div style="padding-top: 80px; max-width: 1200px; margin: 0 auto; padding-left: 2rem; padding-right: 2rem;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    {% if error_code %}
+    <div class="hero">
+        <div class="hero-content">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">
+                {% if error_code == 404 %}🔮{% else %}💥{% endif %}
+            </div>
+            <h1>{{ error_code }}</h1>
+            <p class="hero-subtitle">{{ error_msg }}</p>
+            <div class="hero-actions">
+                <a href="/" class="btn btn-primary">กลับหน้าแรก</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    {% block content %}{% endblock %}
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>
+            ⚡ OMEGA PRIME v2.0 &mdash; 
+            <a href="https://github.com/chaiyaphop/omegaprime" target="_blank">GitHub</a> &middot;
+            <a href="/pricing">ซื้อ License</a> &middot;
+            <a href="/validate">ตรวจสอบ</a>
+        </p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem;">
+            &copy; 2026 Chaiyaphop Nilpaet. Built with ❤️ for the cosmos.
+        </p>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('open');
+        }
+        
+        // Close menu on link click
+        document.querySelectorAll('.navbar-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('open');
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
