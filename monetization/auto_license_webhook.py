@@ -101,9 +101,9 @@ async def handler(event):
     )
 
     # 5. Log for Pipedream
-    print(f"✅ Payment received: {amount_total/100} {currency.upper()} from {customer_email}")
-    print(f"🔑 License generated ({tier}): {license_key[:50]}...")
-    print(f"📅 Expires: {payload['expiry']}")
+    print(f"[OK] Payment received: {amount_total/100} {currency.upper()} from {customer_email}")
+    print(f"[KEY] License generated ({tier}): {license_key[:50]}...")
+    print(f"[EXP] Expires: {payload['expiry']}")
 
     # 6. Return result (Pipedream can send email via built-in action)
     return {

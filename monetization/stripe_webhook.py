@@ -62,19 +62,23 @@ except ImportError:
 # Configuration
 # ------------------------------------------------------------------
 
-# License tiers mapped to Stripe Price IDs
+# License tiers mapped to Stripe Price IDs (REAL IDs from Stripe Dashboard)
+# Bronze  = 1,000 THB/mo, 10,000 THB/yr
+# Silver  = 5,000 THB/mo, 20,000 THB/yr
+# Gold    = 20,000 THB/mo, 60,000 THB/yr
+# Platinum = 50,000 THB one-time (10 years)
 STRIPE_PRICE_TO_TIER = {
-    # 🥉 Bronze
-    "price_bronze_monthly": {"tier": "bronze", "days": 30},
-    "price_bronze_yearly":  {"tier": "bronze", "days": 365},
-    # 🥈 Silver
-    "price_silver_monthly":  {"tier": "silver", "days": 30},
-    "price_silver_yearly":   {"tier": "silver", "days": 365},
-    # 🥇 Gold
-    "price_gold_monthly":    {"tier": "gold", "days": 30},
-    "price_gold_yearly":     {"tier": "gold", "days": 365},
-    # 💎 Platinum
-    "price_platinum":        {"tier": "platinum", "days": 365 * 10},  # 10 years
+    # Bronze
+    "price_1Tbs7U0TLJQM7Q1AYMR6Dc2h": {"tier": "bronze", "days": 30},
+    "price_1Tbs7U0TLJQM7Q1AutYfI0wz": {"tier": "bronze", "days": 365},
+    # Silver
+    "price_1Tbs7V0TLJQM7Q1AkArimQYh": {"tier": "silver", "days": 30},
+    "price_1Tbs7V0TLJQM7Q1AgU8mmkvi": {"tier": "silver", "days": 365},
+    # Gold
+    "price_1Tbs7W0TLJQM7Q1AeSWRXGUH": {"tier": "gold", "days": 30},
+    "price_1Tbs7X0TLJQM7Q1AMIapGGXB": {"tier": "gold", "days": 365},
+    # Platinum (10 years)
+    "price_1Tbs7X0TLJQM7Q1AYaywJO9v": {"tier": "platinum", "days": 3650},
 }
 
 # ------------------------------------------------------------------
@@ -203,8 +207,8 @@ def handle_checkout_completed(session: dict) -> dict:
     # Generate license
     license_key = generate_license(customer_email, tier, days)
     
-    logger.info(f"✅ License generated for {customer_email} ({tier}, {days} days)")
-    logger.info(f"   License key: {license_key[:50]}...")
+    logger.info(f"[OK] License generated for {customer_email} ({tier}, {days} days)")
+    logger.info(f"[KEY] License key: {license_key[:50]}...")
     
     # TODO: Send email with license key
     # send_license_email(customer_email, license_key, tier, days)
@@ -225,7 +229,7 @@ def handle_invoice_paid(invoice: dict) -> dict:
     customer_email = invoice.get("customer_email", "unknown")
     subscription_id = invoice.get("subscription", "unknown")
     
-    logger.info(f"💰 Invoice paid for {customer_email} (subscription: {subscription_id})")
+    logger.info(f"[PAID] Invoice paid for {customer_email} (subscription: {subscription_id})")
     
     # Extend existing license by the billing period
     lines = invoice.get("lines", {}).get("data", [])
@@ -235,7 +239,7 @@ def handle_invoice_paid(invoice: dict) -> dict:
         
         license_key = generate_license(customer_email, tier_info["tier"], tier_info["days"])
         
-        logger.info(f"🔄 License renewed for {customer_email}")
+        logger.info(f"[RENEW] License renewed for {customer_email}")
         
         return {
             "status": "renewed",
@@ -252,7 +256,7 @@ def handle_subscription_updated(subscription: dict) -> dict:
     customer_email = subscription.get("customer", {}).get("email", "unknown")
     status = subscription.get("status", "unknown")
     
-    logger.info(f"📊 Subscription {status} for {customer_email}")
+    logger.info(f"[STATUS] Subscription {status} for {customer_email}")
     
     if status == "canceled":
         # TODO: Mark license as cancelled
@@ -345,11 +349,11 @@ def main():
     print("║        OMEGA PRIME — License Server              ║")
     print("╚══════════════════════════════════════════════════╝")
     print()
-    print(f"  🚀  Server starting on port {port}...")
-    print(f"  📋  POST /webhook/stripe  — Stripe webhook")
-    print(f"  📋  POST /api/validate    — License validation API")
-    print(f"  📋  POST /api/generate    — Admin license generation")
-    print(f"  📋  GET  /health          — Health check")
+    print(f"  [OK] Server starting on port {port}...")
+    print(f"  [POST] /webhook/stripe  - Stripe webhook")
+    print(f"  [POST] /api/validate    - License validation API")
+    print(f"  [POST] /api/generate    - Admin license generation")
+    print(f"  [GET]  /health          - Health check")
     print()
     
     if not HAS_FLASK:
